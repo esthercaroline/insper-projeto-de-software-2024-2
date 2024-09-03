@@ -61,16 +61,16 @@ public class PartidaService {
     }
 
     public RetornarPartidaDTO editarPartida(EditarPartidaDTO dto, Integer id) {
-
-        Partida partida = partidaRepository.findById(id).get();
+        Partida partida = partidaRepository.findById(id)
+                .orElseThrow(() -> new PartidaNaoEncontradaException("Partida não encontrada"));
         partida.setPlacarMandante(dto.getPlacarMandante());
         partida.setPlacarVisitante(dto.getPlacarVisitante());
         partida.setStatus("REALIZADA");
 
         partida = partidaRepository.save(partida);
         return RetornarPartidaDTO.getRetornarPartidaDTO(partida);
-
     }
+
 
     public RetornarPartidaDTO getPartida(Integer id) {
         Optional<Partida> partida = partidaRepository.findById(id);

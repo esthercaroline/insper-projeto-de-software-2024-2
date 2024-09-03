@@ -18,7 +18,6 @@ import java.util.Optional;
 @ExtendWith(MockitoExtension.class)
 public class TimeServiceTests {
 
-
     @InjectMocks
     private TimeService timeService;
 
@@ -26,24 +25,38 @@ public class TimeServiceTests {
     private TimeRepository timeRepository;
 
     @Test
-    public void testListarTimesWhenEstadoIsNull() {
+    public void testCadastrarTime_Sucesso() {
+        Time time = new Time("Time A", "TA123", "Estadio A", "SP");
 
-        // preparacao
+        Mockito.when(timeRepository.save(Mockito.any(Time.class))).thenReturn(time);
+
+        Time resultado = timeService.cadastrarTime(time);
+
+        Assertions.assertNotNull(resultado);
+        Assertions.assertEquals("Time A", resultado.getNome());
+        Mockito.verify(timeRepository, Mockito.times(1)).save(time);
+    }
+
+    @Test
+    public void testCadastrarTime_DadosInvalidos() {
+        Time time = new Time("", "", "Estadio A", "SP");
+
+        Assertions.assertThrows(RuntimeException.class, () -> timeService.cadastrarTime(time));
+        Mockito.verify(timeRepository, Mockito.never()).save(Mockito.any());
+    }
+
+    @Test
+    public void testListarTimesWhenEstadoIsNull() {
         Mockito.when(timeRepository.findAll()).thenReturn(new ArrayList<>());
 
-        // chamada do codigo testado
         List<Time> times = timeService.listarTimes(null);
 
-        // verificacao dos resultados
         Assertions.assertTrue(times.isEmpty());
     }
 
     @Test
     public void testListarTimesWhenEstadoIsNotNull() {
-
-        // preparacao
         List<Time> lista = new ArrayList<>();
-
         Time time = new Time();
         time.setEstado("SP");
         time.setIdentificador("time-1");
@@ -51,18 +64,15 @@ public class TimeServiceTests {
 
         Mockito.when(timeRepository.findByEstado(Mockito.anyString())).thenReturn(lista);
 
-        // chamada do codigo testado
         List<Time> times = timeService.listarTimes("SP");
 
-        // verificacao dos resultados
         Assertions.assertTrue(times.size() == 1);
-        Assertions.assertEquals("SP", times.getFirst().getEstado());
-        Assertions.assertEquals("time-1", times.getFirst().getIdentificador());
+        Assertions.assertEquals("SP", times.get(0).getEstado());
+        Assertions.assertEquals("time-1", times.get(0).getIdentificador());
     }
 
     @Test
     public void testGetTimeWhenTimeIsNotNull() {
-
         Time time = new Time();
         time.setEstado("SP");
         time.setIdentificador("time-1");
@@ -74,18 +84,13 @@ public class TimeServiceTests {
         Assertions.assertNotNull(timeRetorno);
         Assertions.assertEquals("SP", timeRetorno.getEstado());
         Assertions.assertEquals("time-1", timeRetorno.getIdentificador());
-
     }
 
     @Test
     public void testGetTimeWhenTimeIsNull() {
-
         Mockito.when(timeRepository.findById(1)).thenReturn(Optional.empty());
 
         Assertions.assertThrows(TimeNaoEncontradoException.class,
                 () -> timeService.getTime(1));
-
     }
-
-
 }
